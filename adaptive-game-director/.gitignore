@@ -1,0 +1,54 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environments
+.venv/
+venv/
+env/
+ENV/
+
+# IDE & Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project Data and Outputs (keep directory structure via .gitkeep)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/telemetry/*
+!data/telemetry/.gitkeep
+!data/telemetry/sample_telemetry.csv
+
+# Trained Models and Checkpoints
+models/checkpoints/*
+!models/checkpoints/.gitkeep
+models/final/*
+!models/final/.gitkeep
+
+# Logs and TensorBoard
+logs/tensorboard/*
+!logs/tensorboard/.gitkeep
+*.log
+
+# Experiment Results
+results/plots/*
+!results/plots/.gitkeep
+results/metrics/*
+!results/metrics/.gitkeep
+results/experiments/*
+!results/experiments/.gitkeep
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ViZDoom engine generated config
+_vizdoom.ini
+*.ini

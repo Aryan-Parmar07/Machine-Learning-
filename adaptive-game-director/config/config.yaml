@@ -1,0 +1,151 @@
+# ==============================================================================
+# Adaptive Game Director - Configuration
+# RL-Based Dynamic Difficulty Adjustment for ViZDoom
+# ==============================================================================
+
+project:
+  name: "Adaptive Game Director"
+  version: "0.1.0"
+  description: "RL-Based Dynamic Difficulty Adjustment for First-Person Shooters"
+
+# ------------------------------------------------------------------------------
+# ViZDoom Engine Configuration
+# ------------------------------------------------------------------------------
+vizdoom:
+  # Path to external ViZDoom scenario configuration
+  # By default, uses scenario files from vizdoom.scenarios_path:
+  # Options: deathmatch.cfg, defend_the_center.cfg, deadly_corridor.cfg, etc.
+  default_scenario: "deathmatch.cfg"
+  
+  # Screen & Display settings for human gameplay
+  screen_resolution: "RES_800X600" # RES_640X480, RES_800X600, RES_1024X768
+  render_hud: true
+  render_crosshair: true
+  render_flashes: true
+  window_visible: true
+  freelook: true
+  sound_enabled: true
+  
+  # Game tick rate: ViZDoom runs internally at 35 tics per second
+  ticrate: 35
+
+# ------------------------------------------------------------------------------
+# Human Gameplay & Telemetry Collection
+# ------------------------------------------------------------------------------
+telemetry:
+  # Sampling interval in game tics (1 tic = 1/35 s ≈ 28.5ms; 5 tics ≈ 143ms = 7Hz)
+  sampling_interval_tics: 5
+  
+  # Target output directory and filename
+  output_dir: "data/telemetry"
+  output_filename: "human_session.csv"
+  
+  # Console update rate (throttled to avoid terminal spam / lag)
+  live_summary_interval_sec: 0.5
+  
+  # Direct ViZDoom state variables to record
+  direct_variables:
+    - "HEALTH"
+    - "ARMOR"
+    - "SELECTED_WEAPON_AMMO"
+    - "KILLCOUNT"
+    - "DEATHCOUNT"
+    - "HITCOUNT"
+    - "HITS_TAKEN"
+    - "DAMAGECOUNT"
+    - "DAMAGE_TAKEN"
+    - "DEAD"
+    - "SELECTED_WEAPON"
+    - "POSITION_X"
+    - "POSITION_Y"
+    - "POSITION_Z"
+    - "VELOCITY_X"
+    - "VELOCITY_Y"
+    - "VELOCITY_Z"
+    - "ATTACK_READY"
+
+  # Derived metrics to compute online during gameplay
+  derived_metrics:
+    - "elapsed_time_sec"
+    - "survival_time_sec"
+    - "kill_rate"
+    - "death_rate"
+    - "damage_dealt_rate"
+    - "damage_received_rate"
+    - "accuracy_estimate"
+    - "enemy_count"
+    - "player_speed"
+    - "recent_performance_trend"
+    - "aggression_score"
+    - "player_skill_estimate"
+
+# ------------------------------------------------------------------------------
+# Player Model & Feature Engineering
+# ------------------------------------------------------------------------------
+player_model:
+  rolling_window_seconds: 10.0 # Time window for computing moving statistics
+  feature_vector_dimension: 15
+  skill_estimation:
+    novice_threshold: 0.35
+    expert_threshold: 0.75
+    decay_rate: 0.95
+
+# ------------------------------------------------------------------------------
+# Dynamic Difficulty Adjustment (DDA) Controller
+# ------------------------------------------------------------------------------
+dda:
+  # Evaluation / decision step frequency in seconds (or tics)
+  decision_interval_sec: 5.0
+  
+  # Target player health range for Flow-State maintenance
+  target_health_min: 35.0
+  target_health_max: 75.0
+  
+  # Doom skill bounds (1 = Very Easy, 5 = Nightmare)
+  min_skill: 1
+  max_skill: 5
+  default_skill: 3
+  
+  # Action Space (discrete 7 actions):
+  # 0: No change
+  # 1: Increase difficulty (Doom skill / bot aggression)
+  # 2: Decrease difficulty (Doom skill / bot aggression)
+  # 3: Increase enemy spawn rate
+  # 4: Decrease enemy spawn rate
+  # 5: Increase resources / pickups
+  # 6: Decrease resources / pickups
+  action_space_size: 7
+
+# ------------------------------------------------------------------------------
+# Deep Q-Network (DQN) Agent Architecture (Milestone 2+)
+# ------------------------------------------------------------------------------
+dqn:
+  gamma: 0.99
+  learning_rate: 0.0003
+  buffer_capacity: 50000
+  batch_size: 64
+  target_update_frequency: 1000
+  epsilon_start: 1.0
+  epsilon_end: 0.05
+  epsilon_decay_steps: 10000
+  hidden_layers: [128, 128, 64]
+
+# ------------------------------------------------------------------------------
+# Experiment Evaluation
+# ------------------------------------------------------------------------------
+experiments:
+  baselines:
+    - "fixed_easy"
+    - "fixed_medium"
+    - "fixed_hard"
+    - "rule_based_dda"
+    - "dqn_dda"
+  evaluation_metrics:
+    - "survival_time"
+    - "death_rate"
+    - "kill_rate"
+    - "difficulty_stability"
+    - "adaptation_speed"
+    - "target_difficulty_error"
+    - "player_performance"
+    - "total_reward"

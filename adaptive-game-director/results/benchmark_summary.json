@@ -1,0 +1,38 @@
+{
+  "fixed_normal": {
+    "episodes": 3,
+    "flow_channel_mean_pct": 22.14,
+    "flow_channel_std_pct": 7.07,
+    "distress_mean_pct": 10.32,
+    "comfort_mean_pct": 67.53,
+    "survival_rate_pct": 100.0,
+    "mean_survival_sec": 9.13,
+    "mean_kills": 1.0,
+    "ammo_starvation_events": 0,
+    "mean_reward": 0.484
+  },
+  "rule_based": {
+    "episodes": 3,
+    "flow_channel_mean_pct": 24.47,
+    "flow_channel_std_pct": 15.85,
+    "distress_mean_pct": 17.88,
+    "comfort_mean_pct": 57.65,
+    "survival_rate_pct": 100.0,
+    "mean_survival_sec": 9.77,
+    "mean_kills": 0.7,
+    "ammo_starvation_events": 0,
+    "mean_reward": -0.472
+  },
+  "dqn": {
+    "episodes": 3,
+    "flow_channel_mean_pct": 27.69,
+    "flow_channel_std_pct": 15.11,
+    "distress_mean_pct": 8.01,
+    "comfort_mean_pct": 64.3,
+    "survival_rate_pct": 100.0,
+    "mean_survival_sec": 14.49,
+    "mean_kills": 1.3,
+    "ammo_starvation_events": 0,
+    "mean_reward": 0.51
+  }
+}
