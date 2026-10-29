@@ -41,6 +41,7 @@ import vizdoom as vzd
 from src.agent.combat_agent import CombatAgent, CombatStateExtractor, COMBAT_ACTIONS
 from src.agent.dqn import DQNAgent
 from src.dda.difficulty import DifficultyState, DDAAction, EngineActuator
+from src.dda.overlay import DOOM_SKILL_META, SKILL_TIER_META
 from src.player_model.features import (
     FeatureExtractor,
     RawTelemetryFrame,
@@ -759,20 +760,24 @@ def run_visual_grid(args: argparse.Namespace) -> None:
                 badge_surf = font_badge.render(f"[{badge_text}]", True, badge_color)
                 screen.blit(badge_surf, (pos_x + tile_w - 85, pos_y + 6))
 
-                # Overlay 2: LIVE METRICS BAR (Rolling avg kills, reward, survival)
+                # Overlay 2: LIVE METRICS & DIRECTOR TREATMENT BAR
                 overlay_mid = pygame.Surface((tile_w - 4, 22), pygame.SRCALPHA)
                 overlay_mid.fill((15, 23, 42, 180))
                 mid_y = pos_y + 28
                 screen.blit(overlay_mid, (pos_x, mid_y))
 
-                # Color-code avg kills: green if improving, amber if flat
-                kills_color = (52, 211, 153) if tile.avg_kills >= 2.0 else ((251, 191, 36) if tile.avg_kills >= 1.0 else (248, 113, 113))
-                if tile.curriculum_mode and tile.curriculum_tier < len(CURRICULUM_STAGES) - 1:
-                    thresh = CURRICULUM_STAGES[tile.curriculum_tier]["threshold"]
-                    metrics_text = f"AvgK: {tile.avg_kills:.1f}/{thresh:.1f} to grad | AvgRwd: {tile.avg_reward:.1f} | Peak: {tile.peak_kills} | Ep: {tile.episodes_completed}"
-                else:
-                    metrics_text = f"AvgKills: {tile.avg_kills:.1f} | AvgRwd: {tile.avg_reward:.1f} | Peak: {tile.peak_kills} | Ep: {tile.episodes_completed}"
-                metrics_surf = font_badge.render(metrics_text, True, kills_color)
+                # Extract live Director state
+                diff_meta = DOOM_SKILL_META.get(tile.difficulty_state.doom_skill, DOOM_SKILL_META[3])
+                tier_name = getattr(tile.skill_estimator.tier, "value", str(tile.skill_estimator.tier))
+                tier_meta = SKILL_TIER_META.get(tier_name.upper(), SKILL_TIER_META["INTERMEDIATE"])
+
+                # Metrics text displaying exact difficulty state and player skill assessment
+                metrics_text = (
+                    f"DIFF: {diff_meta['name']} | "
+                    f"SEES: {tier_meta['label'][:6]} ({tile.skill_estimator.skill_score:.2f}) | "
+                    f"AvgK: {tile.avg_kills:.1f} | Ep: {tile.episodes_completed}"
+                )
+                metrics_surf = font_badge.render(metrics_text, True, diff_meta["color"])
                 screen.blit(metrics_surf, (pos_x + 8, mid_y + 4))
 
                 # Overlay 3: Bottom Bar (Director & Combat Action)

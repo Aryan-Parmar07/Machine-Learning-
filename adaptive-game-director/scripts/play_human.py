@@ -33,6 +33,7 @@ from src.player_model.features import (
 from src.player_model.skill_estimator import SkillEstimator
 from src.dda.difficulty import DifficultyState, DDAAction, EngineActuator
 from src.dda.rule_based import RuleBasedDDAController
+from src.dda.overlay import DirectorHUDOverlay
 from src.agent.dqn import DQNAgent
 from src.utils.logger import get_logger, TelemetryRecorder
 
@@ -152,6 +153,18 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=3.0,
         help="Director decision interval in seconds. Default: 3.0",
+    )
+    parser.add_argument(
+        "--overlay",
+        action="store_true",
+        default=True,
+        help="Display real-time AI Director HUD overlay showing difficulty treatment (Easy/Medium/Hard), player skill tier, and pacing actions. Default: True",
+    )
+    parser.add_argument(
+        "--no-overlay",
+        dest="overlay",
+        action="store_false",
+        help="Disable AI Director HUD overlay",
     )
     return parser.parse_args()
 
@@ -328,6 +341,15 @@ def run_session(args: argparse.Namespace) -> None:
     logger.info("Press ESC or close window to end early.")
     print("=" * 80)
 
+    # Initialize live HUD Overlay if requested
+    overlay = (
+        DirectorHUDOverlay(standalone=True, game=game, title="ViZDoom AI Director - Human Play HUD")
+        if (args.overlay and director_active)
+        else None
+    )
+    if overlay:
+        logger.info("Live AI Director HUD overlay banner initialized (Always-on-Top).")
+
     total_episodes = args.episodes
     last_print_time = 0.0
     print_interval_sec = 0.5  # Throttle terminal updates to 2 Hz for responsiveness
@@ -468,6 +490,23 @@ def run_session(args: argparse.Namespace) -> None:
                     # Update history
                     feature_extractor.update_history(raw_frame, derived)
 
+                    # Update live HUD overlay
+                    if overlay is not None:
+                        is_emerg = is_emergency if (director_active and "is_emergency" in locals()) else False
+                        overlay.update(
+                            health=health,
+                            ammo=ammo,
+                            killcount=int(killcount),
+                            doom_skill=game.get_doom_skill(),
+                            skill_score=skill_estimator.skill_score,
+                            skill_tier=skill_estimator.tier.value,
+                            latest_action=latest_action_name,
+                            latest_actuation=latest_actuation,
+                            flow_reward=reward,
+                            is_emergency=is_emerg,
+                            game=game,
+                        )
+
                     # Assemble complete CSV row
                     row_data: Dict[str, Any] = {
                         "episode": ep,
@@ -538,6 +577,8 @@ def run_session(args: argparse.Namespace) -> None:
         print()
         logger.info("Session interrupted by user (KeyboardInterrupt). Finalizing data...")
     finally:
+        if overlay is not None:
+            overlay.close()
         recorder.close()
         game.close()
         logger.info(f"Session closed successfully. Telemetry saved ({recorder.row_count} rows) to:")

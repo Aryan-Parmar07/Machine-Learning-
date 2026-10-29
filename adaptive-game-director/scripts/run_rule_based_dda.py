@@ -31,6 +31,7 @@ import vizdoom as vzd
 
 from src.dda.difficulty import DifficultyState, DDAAction, EngineActuator
 from src.dda.rule_based import RuleBasedDDAController
+from src.dda.overlay import DirectorHUDOverlay
 from src.player_model.features import (
     TELEMETRY_COLUMNS,
     RawTelemetryFrame,
@@ -111,6 +112,18 @@ def parse_args() -> argparse.Namespace:
         dest="sound",
         action="store_false",
         help="Disable game audio",
+    )
+    parser.add_argument(
+        "--overlay",
+        action="store_true",
+        default=True,
+        help="Display real-time AI Director HUD overlay showing difficulty treatment (Easy/Medium/Hard), player skill assessment, and pacing actions. Default: True",
+    )
+    parser.add_argument(
+        "--no-overlay",
+        dest="overlay",
+        action="store_false",
+        help="Disable AI Director HUD overlay",
     )
     return parser.parse_args()
 
@@ -207,6 +220,19 @@ def run_rule_based_session(args: argparse.Namespace) -> None:
     controller = RuleBasedDDAController()
     difficulty_state = DifficultyState(doom_skill=args.skill)
     actuator = EngineActuator(game)
+
+    # Initialize Live Director HUD Overlay Banner
+    overlay = (
+        DirectorHUDOverlay(
+            standalone=True,
+            game=game,
+            title=f"ViZDoom Rule-Based Director - {'Human' if args.mode == 'human' else 'Bot AI'} Play HUD",
+        )
+        if args.overlay
+        else None
+    )
+    if overlay:
+        logger.info(f"Live Rule-Based Director HUD overlay banner active (Mode: {args.mode.upper()}).")
 
     bot_agent = SimulatedPlayerAgent(args.persona, available_buttons) if args.mode == "bot" else None
 
@@ -343,9 +369,24 @@ def run_rule_based_session(args: argparse.Namespace) -> None:
                         f"Skill: {skill_estimator.skill_score:0.2f} ({skill_estimator.tier.value})"
                     )
 
-                # Record telemetry sample
+                # Record telemetry sample and update live HUD overlay
                 if tic_counter % args.sample_tics == 0:
                     feature_extractor.update_history(raw_frame, derived)
+
+                    if overlay is not None:
+                        overlay.update(
+                            health=health,
+                            ammo=ammo,
+                            killcount=int(killcount),
+                            doom_skill=difficulty_state.doom_skill,
+                            skill_score=skill_estimator.skill_score,
+                            skill_tier=skill_estimator.tier.value,
+                            latest_action=latest_action.name,
+                            latest_actuation=latest_actuation_msg,
+                            flow_reward=reward,
+                            is_emergency=is_emergency if "is_emergency" in locals() else False,
+                            game=game,
+                        )
 
                     row_data: Dict[str, Any] = {
                         "episode": ep,
@@ -400,6 +441,8 @@ def run_rule_based_session(args: argparse.Namespace) -> None:
     except KeyboardInterrupt:
         logger.info("Session interrupted by user.")
     finally:
+        if overlay is not None:
+            overlay.close()
         recorder.close()
         game.close()
         logger.info("=" * 80)

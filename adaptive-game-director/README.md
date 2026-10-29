@@ -200,7 +200,24 @@ python scripts/play_human.py --scenario defend_the_center.cfg --skill 4
 
 # Save telemetry to a custom destination
 python scripts/play_human.py --output data/telemetry/my_test_run.csv
+
+# Play with DQN Director and Live HUD Overlay (Default):
+python scripts/play_human.py --scenario defend_the_center.cfg --director dqn
+
+# Run Learned DQN DDA in Human Mode with Live HUD:
+python scripts/run_dqn_dda.py --mode human --scenario defend_the_center.cfg
+
+# Run Automated Bot Evaluation with Live HUD:
+python scripts/run_dqn_dda.py --mode bot --scenario defend_the_center.cfg
 ```
+
+### Live AI Director HUD Overlay:
+Both Human and AI playthroughs feature an always-on-top broadcast HUD banner displaying:
+- **Difficulty State & Treatment:** `EASY (Skill 1-2)`, `MEDIUM (Skill 3)`, `HARD (Skill 4)`, or `NIGHTMARE (Skill 5)`
+- **Player Skill Assessment:** `NOVICE (<0.35)`, `INTERMEDIATE (0.35-0.75)`, or `EXPERT (>0.75)`
+- **Flow Channel Status:** `FLOW CHANNEL (Optimal [35-75 HP])`, `DISTRESS (<35 HP)`, or `COMFORT (>75 HP)`
+- **Live Pacing Actions:** Immediate emergency aid notifications (`+25 HP & 50 Ammo`), threat spawns, or monster thinning.
+- **In-Game Text:** Synchronized on-screen console banners directly inside the ViZDoom screen.
 
 ### Controls:
 - **Move:** `W`, `A`, `S`, `D` or Arrow Keys

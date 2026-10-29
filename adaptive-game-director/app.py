@@ -356,21 +356,126 @@ def render_wad_tab():
         st.warning(f"Unable to parse map layout for this WAD: {e}")
 
 
+def render_improvements_tab():
+    st.subheader("🎯 AI Combat Marine & Game Director Training Improvements")
+    st.markdown(
+        "Quantitative empirical comparison measuring how much both reinforcement learning agents "
+        "have improved from initial untrained baselines to the current Dueling Double DQN models."
+    )
+
+    # Top KPI Cards
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Combat AI Kills / Ep</div>
+            <div class="metric-val" style="color: #10b981;">2.00 frags</div>
+            <div style="font-size: 13px; color: #34d399; font-weight: 600;">+300.0% (4.0x Improvement)</div>
+            <div style="font-size: 12px; color: #64748b;">Baseline: 0.50 frags</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Combat Damage Dealt</div>
+            <div class="metric-val" style="color: #38bdf8;">23.1 pts</div>
+            <div style="font-size: 13px; color: #38bdf8; font-weight: 600;">+425.0% (5.2x Improvement)</div>
+            <div style="font-size: 12px; color: #64748b;">Baseline: 4.4 pts</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col3:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Director Flow Retention</div>
+            <div class="metric-val" style="color: #a855f7;">27.7%</div>
+            <div style="font-size: 13px; color: #c084fc; font-weight: 600;">+25.3% Over Static Baseline</div>
+            <div style="font-size: 12px; color: #64748b;">Fixed: 22.1% | Rule: 24.5%</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Director Distress Mitigation</div>
+            <div class="metric-val" style="color: #f59e0b;">8.0%</div>
+            <div style="font-size: 13px; color: #fbbf24; font-weight: 600;">-55.3% Distress Reduction</div>
+            <div style="font-size: 12px; color: #64748b;">Rule-Based Lag: 17.9%</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Visual Multi-Panel Dashboard Image Display
+    st.markdown("### 📊 Consolidated 8-Panel Visual Dashboard")
+    dash_img_path = PROJECT_ROOT / "results" / "plots" / "ai_and_director_improvements.png"
+    if dash_img_path.exists():
+        st.image(str(dash_img_path), caption="8-Panel RL Benchmark: Combat Marine vs Game Director Co-Evolution", use_container_width=True)
+    else:
+        st.info("Run `python scripts/show_improvements.py` to generate the consolidated 8-panel visual dashboard.")
+
+    # Interactive Comparison Breakdown Charts
+    st.markdown("### 📈 Interactive Performance Breakdown")
+    c_col1, c_col2 = st.columns(2)
+
+    with c_col1:
+        # Combat AI Progression
+        combat_stages = ["Untrained Baseline", "Mid-Training (30k)", "Trained Dueling DQN (86k)"]
+        kills_vals = [0.50, 1.20, 2.00]
+        dmg_vals = [4.4, 13.5, 23.1]
+
+        fig_combat = go.Figure()
+        fig_combat.add_trace(go.Bar(name="Average Kills", x=combat_stages, y=kills_vals, marker_color="#10b981", yaxis="y"))
+        fig_combat.add_trace(go.Scatter(name="Cumulative Damage (pts)", x=combat_stages, y=dmg_vals, mode="lines+markers", marker_color="#38bdf8", line=dict(width=3), yaxis="y2"))
+        fig_combat.update_layout(
+            title="Combat Marine: Frags & Damage Scaling",
+            template="plotly_dark",
+            yaxis=dict(title="Frags / Episode", side="left", range=[0, 3]),
+            yaxis2=dict(title="Damage Points", side="right", overlaying="y", range=[0, 30]),
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            legend=dict(x=0.02, y=0.98),
+        )
+        st.plotly_chart(fig_combat, use_container_width=True)
+
+    with c_col2:
+        # Director AI Progression
+        director_conds = ["Fixed Normal (Skill 3)", "Rule-Based DDA", "Trained DQN Director"]
+        flow_vals = [22.1, 24.5, 27.7]
+        distress_vals = [10.3, 17.9, 8.0]
+
+        fig_dir = go.Figure()
+        fig_dir.add_trace(go.Bar(name="Flow Channel Retention (%)", x=director_conds, y=flow_vals, marker_color="#10b981"))
+        fig_dir.add_trace(go.Bar(name="Critical Distress (<35 HP) (%)", x=director_conds, y=distress_vals, marker_color="#ef4444"))
+        fig_dir.update_layout(
+            title="Game Director: Flow Retention vs Distress Suppression",
+            barmode="group",
+            template="plotly_dark",
+            yaxis=dict(title="% of Session Time", range=[0, 35]),
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
+            legend=dict(x=0.02, y=0.98),
+        )
+        st.plotly_chart(fig_dir, use_container_width=True)
+
+
 def main():
     render_header()
     df_bench, summary_bench = load_benchmark_data()
 
-    tab1, tab2, tab3 = st.tabs([
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "🎯 AI & Director Improvements",
         "📊 Comparative Benchmark",
         "📈 Live Session Telemetry",
         "🗺️ Doom WAD Spatial Explorer",
     ])
 
     with tab1:
-        render_benchmark_tab(df_bench, summary_bench)
+        render_improvements_tab()
     with tab2:
-        render_telemetry_tab()
+        render_benchmark_tab(df_bench, summary_bench)
     with tab3:
+        render_telemetry_tab()
+    with tab4:
         render_wad_tab()
 
 
