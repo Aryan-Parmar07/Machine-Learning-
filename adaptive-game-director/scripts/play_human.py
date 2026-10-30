@@ -170,18 +170,39 @@ def parse_args() -> argparse.Namespace:
 
 
 def resolve_scenario_path(scenario_arg: str) -> str:
-    """Finds scenario file either in working directory, project, or vzd.scenarios_path."""
-    direct_path = Path(scenario_arg)
-    if direct_path.exists():
-        return str(direct_path.resolve())
+    """Finds scenario file either in working directory, project, or vzd.scenarios_path.
 
-    vzd_path = Path(vzd.scenarios_path) / scenario_arg
-    if vzd_path.exists():
-        return str(vzd_path.resolve())
+    Automatically resolves scenario names provided with or without the '.cfg' extension.
+    """
+    clean_arg = scenario_arg.strip()
+
+    candidates = [
+        Path(clean_arg),
+        Path(f"{clean_arg}.cfg"),
+        Path("scenarios") / clean_arg,
+        Path("scenarios") / f"{clean_arg}.cfg",
+        Path(vzd.scenarios_path) / clean_arg,
+        Path(vzd.scenarios_path) / f"{clean_arg}.cfg",
+    ]
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate.resolve())
+
+    # Case-insensitive and dash-to-underscore fallback in vzd.scenarios_path
+    normalized_target = clean_arg.lower().replace("-", "_")
+    if not normalized_target.endswith(".cfg"):
+        normalized_target += ".cfg"
+
+    vzd_dir = Path(vzd.scenarios_path)
+    if vzd_dir.is_dir():
+        for cfg_file in vzd_dir.glob("*.cfg"):
+            if cfg_file.name.lower() == normalized_target:
+                return str(cfg_file.resolve())
 
     raise FileNotFoundError(
         f"Could not locate ViZDoom scenario '{scenario_arg}'. "
-        f"Checked direct path and ViZDoom scenarios folder: {vzd.scenarios_path}"
+        f"Checked direct path, .cfg extension, and ViZDoom scenarios folder: {vzd.scenarios_path}"
     )
 
 
