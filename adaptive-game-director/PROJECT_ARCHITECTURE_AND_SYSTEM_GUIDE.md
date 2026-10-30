@@ -1,5 +1,10 @@
 # Adaptive Game Director: Complete Project Architecture & System Guide
 
+**Submitted by:**
+- **Mohammad Anaan Ansari** [Reg No: `RA2411026030055`]
+- **Lekkala Phanidhar Reddy** [Reg No: `RA2411026030032`]
+- **Aryan Parmar** [Reg No: `RA2411026030034`]
+
 An end-to-end technical guide explaining the design, inner mechanics, and reinforcement learning architecture of the **Adaptive Game Director** and **Combat Marine** co-evolution system built on the **ViZDoom** engine.
 
 ---

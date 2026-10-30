@@ -1,6 +1,11 @@
 # Adaptive Game Director
 > **Reinforcement Learning-Based Dynamic Difficulty Adjustment for First-Person Shooters**
 
+**Submitted by:**
+- **Mohammad Anaan Ansari** [Reg No: `RA2411026030055`]
+- **Lekkala Phanidhar Reddy** [Reg No: `RA2411026030032`]
+- **Aryan Parmar** [Reg No: `RA2411026030034`]
+
 [![ViZDoom](https://img.shields.io/badge/ViZDoom-1.3.1-red.svg)](https://vizdoom.farama.org/)
 [![Gymnasium](https://img.shields.io/badge/Gymnasium-1.0%2B-brightgreen.svg)](https://gymnasium.farama.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2%2B-orange.svg)](https://pytorch.org/)
